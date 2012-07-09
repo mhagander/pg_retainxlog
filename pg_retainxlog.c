@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #include <libpq-fe.h>
 
@@ -21,6 +22,7 @@ static void usage(char *prog) __attribute__((noreturn));
 /* commandline arguments */
 static char *appname = NULL;
 static char *appquery = NULL;
+static int sleeptime = 1;
 
 
 static void
@@ -29,6 +31,7 @@ usage(char *prog)
 	printf("Usage: %s [options] <filename> <connectionstr> \n", prog);
 	printf("  -a, --appname    Application name to look for\n");
 	printf("  -q, --query      Custom query result to look for\n");
+	printf("  -s, --sleep      Sleep time before connection (seconds, default=1)\n");
 	printf("  --verbose        Verbose output\n");
 	printf("  --help           Show help\n");
 	exit(1);
@@ -40,6 +43,7 @@ main(int argc, char *argv[])
 	static struct option long_options[] = {
 		{"appname", required_argument, NULL, 'a'},
 		{"query", required_argument, NULL, 'q'},
+		{"sleep", required_argument, NULL, 's'},
 		{"help", no_argument, NULL, '?'},
 		{"verbose", no_argument, NULL, 'v'},
 		{NULL, 0, NULL, 0}
@@ -57,12 +61,20 @@ main(int argc, char *argv[])
 			usage(argv[0]);
 	}
 
-	while ((c = getopt_long(argc, argv, "va:q:?", long_options, &option_index)) != -1)
+	while ((c = getopt_long(argc, argv, "va:s:q:?", long_options, &option_index)) != -1)
 	{
 		switch (c)
 		{
 			case 'a':
 				appname = strdup(optarg);
+				break;
+			case 's':
+				sleeptime = atoi(optarg);
+				if ((sleeptime == 0 && strcmp(optarg, "0") != 0) || sleeptime < 0)
+				{
+					fprintf(stderr, "%s: sleep time must be given as a positive integer!\n", argv[0]);
+					exit(1);
+				}
 				break;
 			case 'q':
 				appquery = strdup(optarg);
@@ -91,6 +103,10 @@ main(int argc, char *argv[])
 	connstr = argv[optind+1];
 	filename = argv[optind];
 
+	/* Sleep for however long specified */
+	sleep(sleeptime);
+
+	/* Now get a connection and run the query */
 	conn = PQconnectdb(connstr);
 	if (!conn || PQstatus(conn) != CONNECTION_OK)
 	{
