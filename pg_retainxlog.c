@@ -139,7 +139,7 @@ main(int argc, char *argv[])
 
 	if (PQntuples(res) == 0)
 	{
-		fprintf(stderr, "%s: no pg_receivexlog replication clients active.\n",
+		fprintf(stderr, "%s: no replication clients active.\n",
 				argv[0]);
 		PQclear(res);
 		PQfinish(conn);
@@ -148,7 +148,7 @@ main(int argc, char *argv[])
 
 	if (PQntuples(res) > 1)
 	{
-		fprintf(stderr, "%s: %i pg_receivexlog replication clients found, can only work with 1.\n",
+		fprintf(stderr, "%s: %i replication clients found, can only work with 1.\n",
 				argv[0], PQntuples(res));
 		PQclear(res);
 		PQfinish(conn);
