@@ -1,7 +1,7 @@
 /*-------------------------------------------------------------------------
  *
  * pg_retainxlog.c - check if a PostgreSQL xlog file is ready to be
- *						recycled using archive_Command
+ *					 recycled using archive_command
  *
  * Author: Magnus Hagander <magnus@hagander.net>
  *

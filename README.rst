@@ -1,6 +1,6 @@
-================
+=============
 pg_retainxlog
-================
+=============
 
 ``pg_retainxlog`` is designed to be used as an *archive_command*
 for PostgreSQL, in situations where there is no traditional
