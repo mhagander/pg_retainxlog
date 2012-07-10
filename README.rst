@@ -20,10 +20,10 @@ the segment being archived. If the segment being archived is older
 than what has been replicated, it does nothing but returns *OK*, which
 will cause PostgreSQL to delete/recycle the log segment. If the
 segment being archived is newer than what has been replicated, it will
-return an error code which will cause PostgreSQL to postpone and try
-again this segment. The idea behind this is that the master server
-will always keep "enough" WAL segments around for the clients, without
-wasting space.
+loop until it has been replicated (or until an error occurs, in which
+case it will return an error and PostgreSQL will retry the command).
+The idea behind this is that the master server will always keep
+"enough" WAL segments around for the clients, without wasting space.
 
 Syntax
 ======
@@ -33,7 +33,7 @@ Syntax
  Usage: pg_retainxlog [options] <filename> <connectionstr> 
   -a, --appname    Application name to look for
   -q, --query      Custom query result to look for
-  -s, --sleep      Sleep time before connection (seconds, default=1)
+  -s, --sleep      Sleep time between attempts (seconds, default=10)
   --verbose        Verbose output
   --help           Show help
 
@@ -100,27 +100,9 @@ sleep
 -----
 
 The *sleep* parameter controls how long ``pg_retainxlog`` will
-sleep before trying to connect to the database. The default value is
-*1 second*.
-
-The reason this parameter exists and may need to be set is that the
-replication, whether to ``pg_receivexlog`` or to a regular replication
-slave, is normally *asynchronous*. ``pg_retainxlog`` also requires
-the slave to have sent back it's current position to the master,
-something which only happens at regular intervals.
-
-As such, PostgreSQL may end up calling the *archive_command* before
-the file has finished replicating, even during normal operation. In
-this scenario, ``pg_retainxlog`` will still work, but generate lots
-of excess logging in the PostgreSQL logs, since it requires a retry of
-almost every segment. In this case, increasing the delay before
-checking may be useful, since it lets the replication finish receiving
-the data on the slave before checking it.
-
-Setting this parameter high decreases the risk of retries due to the
-slave falling behind, while slightly increasing the amount of segments
-kept around on the master. It never affects the actual output, just
-the timing.
+sleep between each query to check status. It will always make a
+connection right away and reuse that connection (or if the connection
+fails, exit with an error code). The default value is *10 seconds*.
 
 
 Using with pg_streamrecv
