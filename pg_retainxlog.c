@@ -23,6 +23,7 @@ static void usage(char *prog) __attribute__((noreturn));
 static char *appname = NULL;
 static char *appquery = NULL;
 static int sleeptime = 10;
+static int initialsleep = 0;
 
 
 static void
@@ -32,6 +33,8 @@ usage(char *prog)
 	printf("  -a, --appname    Application name to look for\n");
 	printf("  -q, --query      Custom query result to look for\n");
 	printf("  -s, --sleep      Sleep time between attempts (seconds, default=10)\n");
+	printf("  -i, --initialsleep\n"
+           "                   Sleep time before first attempt (seconds, default=0)\n");
 	printf("  --verbose        Verbose output\n");
 	printf("  --help           Show help\n");
 	exit(1);
@@ -44,6 +47,7 @@ main(int argc, char *argv[])
 		{"appname", required_argument, NULL, 'a'},
 		{"query", required_argument, NULL, 'q'},
 		{"sleep", required_argument, NULL, 's'},
+		{"initialsleep", required_argument, NULL, 'i'},
 		{"help", no_argument, NULL, '?'},
 		{"verbose", no_argument, NULL, 'v'},
 		{NULL, 0, NULL, 0}
@@ -62,7 +66,7 @@ main(int argc, char *argv[])
 			usage(argv[0]);
 	}
 
-	while ((c = getopt_long(argc, argv, "va:s:q:?", long_options, &option_index)) != -1)
+	while ((c = getopt_long(argc, argv, "va:i:s:q:?", long_options, &option_index)) != -1)
 	{
 		switch (c)
 		{
@@ -74,6 +78,14 @@ main(int argc, char *argv[])
 				if ((sleeptime == 0 && strcmp(optarg, "0") != 0) || sleeptime < 0)
 				{
 					fprintf(stderr, "%s: sleep time must be given as a positive integer!\n", argv[0]);
+					exit(1);
+				}
+				break;
+			case 'i':
+				initialsleep = atoi(optarg);
+				if ((initialsleep == 0 && strcmp(optarg, "0") != 0) || initialsleep < 0)
+				{
+					fprintf(stderr, "%s: initial sleep time must be given as a positive integer!\n", argv[0]);
 					exit(1);
 				}
 				break;
@@ -123,7 +135,10 @@ main(int argc, char *argv[])
 			 */
 			sleep(sleeptime);
 		else
+		{
+			sleep(initialsleep);
 			firstloop = 0;
+		}
 
 
 		if (appquery)

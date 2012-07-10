@@ -34,6 +34,8 @@ Syntax
   -a, --appname    Application name to look for
   -q, --query      Custom query result to look for
   -s, --sleep      Sleep time between attempts (seconds, default=10)
+  -i, --initialsleep
+                   Sleep time before first attempt (seconds, default=0)
   --verbose        Verbose output
   --help           Show help
 
@@ -104,6 +106,16 @@ sleep between each query to check status. It will always make a
 connection right away and reuse that connection (or if the connection
 fails, exit with an error code). The default value is *10 seconds*.
 
+initialsleep
+------------
+
+The *initialsleep* parameter controls how long ``pg_retainxlog`` will
+sleep before making the first status check. This is typically a much
+shorter time, than *sleep*, and is used to let the replica catch up
+to the last couple of bytes before checkin. This is particularly
+interestingf if you are running in verbose mode, to avoid cluttering
+the logs. The downside is that it will slow down a catchup phase if
+many logfiles haven't been archived.
 
 Using with pg_streamrecv
 ========================
